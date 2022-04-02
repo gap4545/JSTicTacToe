@@ -1,0 +1,39 @@
+* {
+    border: 1px solid red;
+}
+
+@keyframes slide-left {
+    from {
+        color: black;
+    }
+    to {
+        color: red;
+    }
+}
+
+@keyframes slide-down {
+    form {
+        color: black;
+    }
+    to {
+        color: red;
+    }
+}
+
+body, .container {
+    height: 100vh;
+    height: 100vw;
+}
+
+.space {
+    width: 30px;
+    height: 30px;
+}
+
+.slide-left {
+    animation: slide-left 0.5s;
+}
+
+.slide-down {
+    animation: slide-down 0.5s;
+}

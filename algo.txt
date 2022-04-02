@@ -16,6 +16,17 @@ player 2 always O and can be bot or human
 random goes first
 change turn method
 
-open space val === 0
-player1 val === 1
-player2 val === 2
+open space val === undefined
+
+
+what to store in player
+type
+val
+
+
+add title and welcome animation
+add players form
+add start game button that calls destroy function
+
+
+Working on play again feature
