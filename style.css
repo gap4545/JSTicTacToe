@@ -5,7 +5,7 @@
 }
 
 * {
-    /* border: 1px solid red; */
+/*     border: 1px solid red; */
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -13,32 +13,30 @@
 
 @keyframes bounce-from-top {
     0% {
-        top: 0;
-        left: 33%;
+/*         top: -50%;
+        left: -35%; */
         opacity: 0;
-        transform: translate(-50%, -50%) scale(1);
+        transform: translate(-50%, -100%) scale(1);
 }
     25% {
-        top: 90%;
-        left: 33%;
+/*         top: 130%;
+        left: -35%; */
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1.1, 0.8);
+        transform: translate(-50%, 90%) scale(1.1, 0.8);
     }
     50% {
-        top: 25%;
-        left: 33%;
-        transform: translate(-50%, -50%) scale(0.9, 1.1);
-    }
-    85% {
-        top: 40%;
-        left: 33%;
-        transform: translate(-50%, -50%) scale(1, 1);
+/*         top: -25%;
+        left: -35%; */
+        transform: translate(-50%, -75%) scale(0.9, 1.1);
     }
     100% {
-        top: 50%;
-        left: 33%;
+/*         top: 50%;
+        left: -35%; */
+        transform: translate(-50%, -50%) scale(1)
     }
 }
+
+/* START OF ANIMATIONS */
 
 @keyframes slide-down {
     form {
@@ -51,9 +49,11 @@
 
 @keyframes expand {
     from {
+        opacity: 0;
         transform: scale(0);
     }
     to {
+        opacity: 1;
         transform: scale(1);
     }
 }
@@ -76,54 +76,8 @@
     }
 }
 
-body {
-    height: 100vh;
-    width: 100vw;
-}
-
-/* HEADER STYLING START */
-.header {
-    position: relative;
-    height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--main-font-col);
-}
-
-.game-title {
-    font-size: 32px;
-    font-weight: bold;
-    text-shadow: 2px 2px 2px 1px var(--shadow-col);
-}
-
-.welcome-to-span {
-    position: absolute;
-    top: 50%;
-    left: 33%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-}
-
-.underline-animate {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 0.1em;
-    background-color: var(--border-col);
-    opacity: 1;
-    transform: scale(0);
-    transform-origin: center;
-}
-
-.space {
-    width: 30px;
-    height: 30px;
-}
-
 .bounce-from-top {
-    animation: bounce-from-top 2s ease-in;
+    animation: bounce-from-top 2s;
 }
 
 .slide-down {
@@ -131,7 +85,7 @@ body {
 }
 
 .expand {
-    animation: expand 3s forwards;
+    animation: expand 1s forwards;
 }
 .shrink {
     animation: shrink 1s;
@@ -139,4 +93,185 @@ body {
 
 .fade-out {
     animation: fade-out 1s;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+}
+
+/* END OF ANIMATIONS */
+
+/* START OF HEADER STYLING */
+
+.header {
+    position: relative;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--main-font-col);
+    width: 100%;
+    border-bottom: 3px solid var(--border-col);
+    box-shadow: 0px 3px 5px black;
+}
+
+.game-title {
+    position: relative;
+    font-size: 2.7em;
+    font-weight: bold;
+}
+
+.welcome-to-span {
+    position: absolute;
+    top: 50%;
+    left: -30%;
+    transform: translate(-50%, -50%);
+    font-size: 0.6em;
+}
+
+.underline-animate {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.07em;
+    background-color: var(--border-col);
+    opacity: 1;
+    transform: scale(0);
+    transform-origin: center;
+}
+
+/* END OF HEADER STYLING */
+
+/* START OF WELCOME SCREEN STYLING */
+
+.welcome-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+}
+
+.player-forms-container {
+   height: max-content;
+   width: max-content;
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   grid-template-rows: 1fr 1fr;
+   grid-template-areas: 'player1-form player2-form' 'start-but start-but';
+   padding: 25px;
+   border: 2px solid var(--border-col);
+   border-radius: 10px;
+   margin-bottom: 5px;
+   margin-top: 2em;
+   transform: scale(0);
+   animation-delay: 3s;
+}
+
+form.player-form[name=player1-form] {
+    grid-area: player1-form;
+}
+
+form.player-form[name=player2-form] {
+    grid-area: player2-form;
+}
+
+.start-button {
+    grid-area: start-but;
+    height: min-content;
+    width: max-content;
+    justify-self: center;
+    align-self: center;
+    min-height: 25px;
+    height: 8vh;
+    max-height: 40px;
+    min-width: 100px;
+    width: 15vw;
+    max-width: 250px;
+    font-size: 1.5em;
+    background-color: #CCB7F0;
+    color: var(--main-font-col);
+    border: 2px solid var(--border-col);
+    transition: 1s;
+}
+
+.start-button:hover,
+.start-button:focus {
+    color: #CCB7F0;
+    background-color: var(--main-font-col);
+}
+
+.player-form {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+}
+
+.player-form-header {
+    color: var(--main-font-col);
+}
+
+.player-radio-button {
+    margin: 5px 0px 20px;
+}
+
+.player-radio-button,
+.computer-radio-button {
+    position: relative;
+    min-height: 25px;
+    height: 6vh;
+    max-height: 40px;
+    min-width: 95px;
+    width: 8vw;
+    max-width: 150px;
+    appearance: none;
+    border: 2px solid var(--border-col);
+    background-color: #CCB7F0;
+    transition: 0.5s;
+}
+
+.player-radio-button:after,
+.computer-radio-button:after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: var(--main-font-col);
+    transition: 0.5s;
+}
+
+.player-radio-button:after {
+    content: 'Human';
+}
+
+.computer-radio-button:after {
+    content: 'Computer';
+}
+
+.player-radio-button:checked,
+.player-radio-button:hover,
+.computer-radio-button:checked,
+.computer-radio-button:hover {
+    background-color: var(--main-font-col);
+}
+
+.player-radio-button:checked:after,
+.player-radio-button:hover:after,
+.computer-radio-button:checked:after,
+.computer-radio-button:hover:after {
+    color: #CCB7F0;
+}
+
+/* END OF WELCOME SCREEN STYLING */
+
+
+.space {
+    width: 30px;
+    height: 30px;
 }
