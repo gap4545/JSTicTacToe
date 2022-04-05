@@ -29,4 +29,6 @@ add players form
 add start game button that calls destroy function
 
 
-Working on play again feature
+
+
+clean code up!!
