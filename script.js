@@ -3,7 +3,7 @@ const div = document.createElement('div');
 const span = document.createElement('span');
 const button = document.createElement('button');
 
-function animateOnce(animationClass, element, {deleteElementAfter = false, removeClassAfter = false}) {
+function animateOnce(animationClass, element, {deleteElementAfter = false, removeClassAfter = false} = {}) {
 
     element.classList.add(animationClass);
     element.addEventListener('animationend', e => {
@@ -17,72 +17,131 @@ function animateOnce(animationClass, element, {deleteElementAfter = false, remov
 
 };
 
-const gameboard = (function() {
+const playerModule = (function () {
 
-    let gameContainer = div.cloneNode();
-    const boardArr = [];
+    let player1;
+    let player2;
 
-    const setSpace = (function(spaceButton) {
-// just need to get turn to set value
-        spaceButton.value = players[_getTurn()].getVal();
-        spaceButton.classList.remove('open');
-        spaceButton.classList.add('taken');
-        // appned span child to button with x or y to animate move
-        spaceButton.textContent = spaceButton.value;
-        // For tests ^
+    const _Player = (function(playerToken) {
+
+        let token = playerToken;
+        
+        const getToken = (function() {
+            return token;
+        });
+
+        const type = (function() {
+            return 'Player';
+        })
+    
+        return {getToken, type};
+
     });
 
-    const reset = (function() {
+    const _Computer = (function(playerToken) {
 
-        let i = 5;
+        const {getToken} = _Player(playerToken);
+
+        const type = (function() {
+            return 'Computer';
+        });
+        
+        // TODO: Define computer logic here
+
+        return {getToken, type};
+
+    });
+
+    const createPlayers = (function(player1Type, player2Type) {
+        
+        if (player1 != undefined) return;
+        player1 = (player1Type === 'player') ? _Player('X') : _Computer('X');
+        player2 = (player2Type === 'player') ? _Player('Y') : _Computer('Y');
+
+    });
+
+    const resetPlayers = (function () {
+
+        player1 = undefined;
+        player2 = undefined;
+
+    });
+
+    return {createPlayers, resetPlayers};
+
+})();
+
+const gameboard = (function() {
+
+    const boardContainer = div.cloneNode();
+    const animatedPlayerToken = span.cloneNode();
+    const spaceButton = button.cloneNode();
+    const boardArr = [];
+
+    const _init = (function(){
+
+        animatedPlayerToken.classList.add('player-token');
+        boardContainer.classList.add('game-container');
+        spaceButton.classList.add('open', 'space');
+        spaceButton.value = 0;
+
+    })();
+    
+    const _setSpace = (function(spaceButton) {
+
+        spaceButton.value = game.getTurn();
+        spaceButton.classList.replace('open', 'taken');
+        animatedPlayerToken.textContent = game.getTurn();
+        spaceButton.append(animatedPlayerToken);
+
+    });
+
+    const resetBoard = (function() {
 
         boardArr.forEach(spaceButton => {
             spaceButton.disabled = false;
-            spaceButton.textContent = '';
-            spaceButton.value = i;
+            spaceButton.innerHTML = '';
             spaceButton.className = 'open space';
-            i++;
         });
 
     });
 
-    const _init = (function(){
 
-        const spaceButton = button.cloneNode();
-
+    const _createBoard = (function(){
+        
         for (let i = 0; i <= 9; i++) boardArr.push(spaceButton.cloneNode());
+
         boardArr.forEach(spaceButton => {
             spaceButton.addEventListener('click', eve => {
-                setSpace(spaceButton);
+                _setSpace(spaceButton);
                 game.changeTurn();
                 checkWin();
                 spaceButton.disabled = true;
             });
         });
 
-        reset();
-
     })();
 
     const displayBoard = (function() {
 
-        gameContainer.className = 'game-container';
         boardArr.forEach(e => {
-            gameContainer.appendChild(e);
+            boardContainer.appendChild(e);
         });
-        gameModuleContainer.append(gameContainer);
+        gameModuleContainer.append(boardContainer);
 
     });
 
     const destroy = (function() {
 
-        reset();
-        gameModuleContainer.removeChild(gameContainer);
+        resetBoard();
+        gameModuleContainer.removeChild(boardContainer);
 
     });
 
 
     const checkWin = (function() {
+
+        // TODO: Rework win check at some point
 
         if (
             (boardArr[4].value === boardArr[0].value && boardArr[4].value === boardArr[8].value) |
@@ -101,7 +160,7 @@ const gameboard = (function() {
                 };
     });
     
-    return {displayBoard, reset, destroy};
+    return {displayBoard, resetBoard, destroy};
 
 })();
 
@@ -109,36 +168,6 @@ const game = (function() {
 
     let players = [];
     let turn;
-
-    const _Player = (function(val) {
-
-        let v = val;
-        
-        const getVal = (function() {
-            return v;
-        });
-
-        const type = (function() {
-            return 'Player';
-        })
-    
-        return {getVal, type};
-
-    });
-
-    const _Computer = (function(val) {
-
-        const {getVal} = _Player(val);
-
-        const type = (function() {
-            return 'Computer';
-        });
-        
-        //Define computer logic here
-
-        return {getVal, type};
-
-    });
     
     const getTurn = (function() {
         return turn;
@@ -146,11 +175,12 @@ const game = (function() {
     
     const changeTurn = (function() {
 
+        // TODO: Rework turn to x or o here and in start
         turn = (turn === 0) ? 1 : 0; // If turn equals 0 turn becomes 1 if not turn equals 0;
         console.log(turn);
 
     });
-    
+    // ? Break out of game?
     const _playAgainScreen = (function() {
 
         let playAgainDiv = div.cloneNode();
@@ -167,7 +197,7 @@ const game = (function() {
 
         });
 
-        const _creation = (function() {
+        const _createScreen = (function() {
 
             playAgainDiv.classList.add('play-again-container');
     
@@ -217,17 +247,9 @@ const game = (function() {
     });
 
     //Makes new player with the value of the length of the players array to keep it simple in getting each player for expansion purposes
-    const createPlayer = (function(playerType) {
+    
 
-        if (playerType === 'player') {
-            players.push(_Player(players.length));
-        } else if (playerType === 'computer') {
-            players.push(_Computer(players.length))
-        };
-
-    });
-
-    return {createPlayer, start, _getTurn};
+    return {start, getTurn};
 
 })();
 
@@ -237,7 +259,22 @@ const welcomeScreen = (function() {
     let title = span.cloneNode();
     let welcomeTo = span.cloneNode();
     let underlineAnimation = span.cloneNode();
-    let playerSelectorDiv = div.cloneNode();
+    let playerFormContainer = div.cloneNode();
+    
+    const _animations = (function() {
+
+        animateOnce('bounce-from-top', welcomeTo, {removeClassAfter : true});
+
+        welcomeTo.addEventListener('animationend', function() {
+            animateOnce('expand', underlineAnimation, {removeClassAfter : true});
+            welcomeTo.append(underlineAnimation);
+            animateOnce('expand', playerFormContainer, {removeClassAfter : true});
+            gameModuleContainer.append(playerFormContainer);
+        }, {once : true});
+
+        title.append(welcomeTo);
+
+    });
 
     const _init = (function() {
 
@@ -245,53 +282,39 @@ const welcomeScreen = (function() {
         header.classList.add('header');
         title.classList.add('game-title');
         welcomeTo.classList.add('welcome-to-span');
-        playerSelectorDiv.classList.add('player-forms-container');
+        playerFormContainer.classList.add('player-forms-container');
         underlineAnimation.classList.add('underline-animate');
-
+        
         title.textContent = 'TIC-TAC-TOE';
         welcomeTo.textContent = 'Welcome to ';
-        welcomeTo.addEventListener('animationend', function() {
-            underlineAnimation.classList.add('expand')
-        }, {once : true});
-        animateOnce('bounce-from-top', welcomeTo, {removeClassAfter : true});
 
-        title.append(welcomeTo)
+        _animations();
+        
         header.append(title);
+        gameModuleContainer.append(header);
 
     })();
 
     const _destroy = (function() {
 
         animateOnce('slide-left', welcomeTo, {deleteElementAfter : true});
-        animateOnce('slide-down', playerSelectorDiv, { deleteElementAfter : true});
+        playerFormContainer.classList.remove('expand');
+        animateOnce('slide-down', playerFormContainer, {deleteElementAfter : true});
         gameModuleContainer.classList.remove('welcome-screen');
-
-    });
-
-    const _display = (function() {
-
-        welcomeTo.appendChild(underlineAnimation);
-        gameModuleContainer.append(header, playerSelectorDiv);
-
-    });
-
-    const _getPlayerTypes = (function() {
-
-        let forms = gameModuleContainer.querySelectorAll('.player-form');
-
-        for (let i = 1; i <= forms.length; i++) {
-            if (gameModuleContainer.querySelector(`#player${i}`).checked === true) {
-                game.createPlayer('player');
-            } else {
-                game.createPlayer('computer');
-            };
-        };
 
     });
 
     const _submitPlayers = (function() {
 
-        _getPlayerTypes();
+        let player1Type = document.querySelector('input[name="player1-radio"]:checked').value;
+        let player2Type = document.querySelector('input[name="player2-radio"]:checked').value;
+        playerModule.createPlayers(player1Type, player2Type);
+
+    });
+
+    const _gameStart = (function() {
+
+        _submitPlayers();
         _destroy();
         game.start();
 
@@ -299,43 +322,57 @@ const welcomeScreen = (function() {
 
     const _createForm = (function() {
 
+        let radioButton = document.createElement('input');
+        radioButton.setAttribute('type', 'radio');
+
         for (let i = 1; i <= 2; i++) {
+
             let playerForm = document.createElement('form');
             playerForm.classList.add('player-form');
             playerForm.setAttribute('name', `player${i}-form`);
 
-            let formHeader = document.createElement('h3');
+            let formHeader = document.createElement('h2');
             formHeader.classList.add('player-form-header');
             formHeader.textContent = `Player ${i}`;
 
-    
-            let playerRadioButton = document.createElement('input');
+            let playerDiv = div.cloneNode();
+            playerDiv.classList.add('type-container');
+            
+            let playerLabel = document.createElement('label');
+            playerLabel.textContent = 'Human';
+            playerLabel.classList.add('radio-label');
+
+            let playerRadioButton = radioButton.cloneNode();
             playerRadioButton.classList.add('player-radio-button');
-            playerRadioButton.setAttribute('type', 'radio');
             playerRadioButton.setAttribute('name', `player${i}-radio`)
             playerRadioButton.setAttribute('id', `player${i}`)
             playerRadioButton.setAttribute('value', 'player');
             playerRadioButton.setAttribute('checked', 'true');
     
-            let computerRadioButton = document.createElement('input');
+            let computerDiv = div.cloneNode();
+            computerDiv.classList.add('type-container');
+            
+            let computerLabel = document.createElement('label');
+            computerLabel.textContent = 'Computer';
+            computerLabel.classList.add('radio-label');
+
+            let computerRadioButton = radioButton.cloneNode();
             computerRadioButton.classList.add('computer-radio-button');
-            computerRadioButton.setAttribute('type', 'radio');
             computerRadioButton.setAttribute('name', `player${i}-radio`);
             computerRadioButton.setAttribute('id', `computer${i}`);
             computerRadioButton.setAttribute('value', 'computer');
-    
-            playerForm.append(formHeader, playerRadioButton, computerRadioButton);
-            playerSelectorDiv.appendChild(playerForm);
+
+            playerDiv.append(playerRadioButton, playerLabel);
+            computerDiv.append(computerRadioButton, computerLabel);
+            playerForm.append(formHeader, playerDiv, computerDiv);
+            playerFormContainer.appendChild(playerForm);
         };
 
         let startGameButton = button.cloneNode()
         startGameButton.textContent = 'START GAME';
         startGameButton.classList.add('start-button');
-        startGameButton.addEventListener('click', _submitPlayers);
-        playerSelectorDiv.append(startGameButton);
-
-        animateOnce('expand', playerSelectorDiv);
-        _display();
+        startGameButton.addEventListener('click', _gameStart);
+        playerFormContainer.append(startGameButton);
 
     })();
 

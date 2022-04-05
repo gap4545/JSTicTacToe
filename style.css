@@ -22,7 +22,7 @@
 /*         top: 130%;
         left: -35%; */
         opacity: 1;
-        transform: translate(-50%, 90%) scale(1.1, 0.8);
+        transform: translate(-50%, 85%) scale(1.1, 0.8);
     }
     50% {
 /*         top: -25%;
@@ -39,7 +39,7 @@
 /* START OF ANIMATIONS */
 
 @keyframes slide-down {
-    form {
+    from {
         color: black;
     }
     to {
@@ -76,8 +76,21 @@
     }
 }
 
+@keyframes radio-animation {
+    from {
+        background-color: var(--main-font-col);
+    }
+    to {
+        background-color: #CCB7F0;
+    }
+}
+
+.radio-button-animation {
+    animation: radio-animation 1s;
+}
+
 .bounce-from-top {
-    animation: bounce-from-top 2s;
+    animation: bounce-from-top 2s ease-out;
 }
 
 .slide-down {
@@ -138,7 +151,6 @@ body {
     height: 0.07em;
     background-color: var(--border-col);
     opacity: 1;
-    transform: scale(0);
     transform-origin: center;
 }
 
@@ -166,8 +178,6 @@ body {
    border-radius: 10px;
    margin-bottom: 5px;
    margin-top: 2em;
-   transform: scale(0);
-   animation-delay: 3s;
 }
 
 form.player-form[name=player1-form] {
@@ -180,13 +190,9 @@ form.player-form[name=player2-form] {
 
 .start-button {
     grid-area: start-but;
-    height: min-content;
-    width: max-content;
     justify-self: center;
     align-self: center;
-    min-height: 25px;
-    height: 8vh;
-    max-height: 40px;
+    height: 40px;
     min-width: 100px;
     width: 15vw;
     max-width: 250px;
@@ -209,49 +215,53 @@ form.player-form[name=player2-form] {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 25px;
+    padding: 15px;
+    margin: 10px;
+    border: 1px solid var(--border-col);
+    border-radius: 7px;
+    box-shadow: 2px 2px 2px black;
 }
 
 .player-form-header {
     color: var(--main-font-col);
+    text-decoration: underline;
 }
 
-.player-radio-button {
-    margin: 5px 0px 20px;
+.type-container:first-of-type {
+    margin: 7px 0px 15px;
 }
 
-.player-radio-button,
-.computer-radio-button {
+.type-container {
     position: relative;
-    min-height: 25px;
-    height: 6vh;
-    max-height: 40px;
-    min-width: 95px;
-    width: 8vw;
-    max-width: 150px;
-    appearance: none;
-    border: 2px solid var(--border-col);
-    background-color: #CCB7F0;
-    transition: 0.5s;
 }
 
-.player-radio-button:after,
-.computer-radio-button:after {
+.radio-label {
     position: absolute;
-    top: 50%;
+    top: 43%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 18px;
     color: var(--main-font-col);
     transition: 0.5s;
+    pointer-events: none;
 }
 
-.player-radio-button:after {
-    content: 'Human';
+.player-radio-button:checked ~ .radio-label,
+.computer-radio-button:checked ~ .radio-label,
+.player-radio-button:hover ~ .radio-label,
+.computer-radio-button:hover ~ .radio-label {
+    color: #CCB7F0;
 }
 
-.computer-radio-button:after {
-    content: 'Computer';
+.player-radio-button,
+.computer-radio-button {
+    position: relative;
+    height: 33px;
+    width: 110px;
+    appearance: none;
+    border: 2px solid var(--border-col);
+    background-color: #CCB7F0;
+    transition: 0.5s;
 }
 
 .player-radio-button:checked,
@@ -259,13 +269,6 @@ form.player-form[name=player2-form] {
 .computer-radio-button:checked,
 .computer-radio-button:hover {
     background-color: var(--main-font-col);
-}
-
-.player-radio-button:checked:after,
-.player-radio-button:hover:after,
-.computer-radio-button:checked:after,
-.computer-radio-button:hover:after {
-    color: #CCB7F0;
 }
 
 /* END OF WELCOME SCREEN STYLING */
