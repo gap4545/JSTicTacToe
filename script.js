@@ -1,18 +1,109 @@
 let gameModuleContainer = document.querySelector('.module-container');
+const div = document.createElement('div');
+const span = document.createElement('span');
+const button = document.createElement('button');
 
-function animateOnce(animationClass, element, deleteElement = false, removeClass = false) {
+function animateOnce(animationClass, element, {deleteElementAfter = false, removeClassAfter = false}) {
 
     element.classList.add(animationClass);
     element.addEventListener('animationend', e => {
-        if (deleteElement == true) {
+        if (deleteElementAfter == true) {
             element.parentNode.removeChild(element);
         };
-        if (removeClass == true) {
+        if (removeClassAfter == true) {
             element.classList.remove(animationClass);
         };
     }, {once : true});
 
 };
+
+const gameboard = (function() {
+
+    let gameContainer = div.cloneNode();
+    const boardArr = [];
+
+    const setSpace = (function(spaceButton) {
+// just need to get turn to set value
+        spaceButton.value = players[_getTurn()].getVal();
+        spaceButton.classList.remove('open');
+        spaceButton.classList.add('taken');
+        // appned span child to button with x or y to animate move
+        spaceButton.textContent = spaceButton.value;
+        // For tests ^
+    });
+
+    const reset = (function() {
+
+        let i = 5;
+
+        boardArr.forEach(spaceButton => {
+            spaceButton.disabled = false;
+            spaceButton.textContent = '';
+            spaceButton.value = i;
+            spaceButton.className = 'open space';
+            i++;
+        });
+
+    });
+
+    const _init = (function(){
+
+        const spaceButton = button.cloneNode();
+
+        for (let i = 0; i <= 9; i++) boardArr.push(spaceButton.cloneNode());
+        boardArr.forEach(spaceButton => {
+            spaceButton.addEventListener('click', eve => {
+                setSpace(spaceButton);
+                game.changeTurn();
+                checkWin();
+                spaceButton.disabled = true;
+            });
+        });
+
+        reset();
+
+    })();
+
+    const displayBoard = (function() {
+
+        gameContainer.className = 'game-container';
+        boardArr.forEach(e => {
+            gameContainer.appendChild(e);
+        });
+        gameModuleContainer.append(gameContainer);
+
+    });
+
+    const destroy = (function() {
+
+        reset();
+        gameModuleContainer.removeChild(gameContainer);
+
+    });
+
+
+    const checkWin = (function() {
+
+        if (
+            (boardArr[4].value === boardArr[0].value && boardArr[4].value === boardArr[8].value) |
+            (boardArr[4].value === boardArr[1].value && boardArr[4].value === boardArr[7].value) |
+            (boardArr[4].value === boardArr[2].value && boardArr[4].value === boardArr[6].value) |
+            (boardArr[4].value === boardArr[3].value && boardArr[4].value === boardArr[5].value) ) {
+                _playAgainScreen.display(boardArr[4].value);
+        } else if (
+                (boardArr[0].value === boardArr[1].value && boardArr[0].value === boardArr[2].value) |
+                (boardArr[0].value === boardArr[3].value && boardArr[0].value === boardArr[6].value) ) {
+                _playAgainScreen.display(boardArr[0].value);
+        } else if (
+                (boardArr[8].value === boardArr[5].value && boardArr[8].value === boardArr[2].value) |
+                (boardArr[8].value === boardArr[7].value && boardArr[8].value === boardArr[6].value) ) {
+                _playAgainScreen.display(boardArr[8].value);
+                };
+    });
+    
+    return {displayBoard, reset, destroy};
+
+})();
 
 const game = (function() {
 
@@ -49,11 +140,11 @@ const game = (function() {
 
     });
     
-    const _getTurn = (function() {
+    const getTurn = (function() {
         return turn;
     });
     
-    const _changeTurn = (function() {
+    const changeTurn = (function() {
 
         turn = (turn === 0) ? 1 : 0; // If turn equals 0 turn becomes 1 if not turn equals 0;
         console.log(turn);
@@ -62,17 +153,17 @@ const game = (function() {
     
     const _playAgainScreen = (function() {
 
-        let playAgainDiv = document.createElement('div');
-        let winnerDiv = document.createElement('div');
-        let playSameButton = document.createElement('button');
-        let playNewButton = document.createElement('button');
+        let playAgainDiv = div.cloneNode();
+        let winnerDiv = div.cloneNode();
+        let playSameButton = button.cloneNode();
+        let playNewButton = button.cloneNode();
 
         const _destroy = (function () {
 
-            animateOnce('shrink', winnerDiv, true, true);
-            animateOnce('shrink', playSameButton, true, true);
-            animateOnce('shrink', playNewButton, true, true);
-            animateOnce('fade-out', playAgainDiv, true, true);
+            animateOnce('shrink', winnerDiv, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('shrink', playSameButton, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('shrink', playNewButton, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('fade-out', playAgainDiv, {deleteElementAfter : true, removeClassAfter : true});
 
         });
 
@@ -98,10 +189,10 @@ const game = (function() {
                 welcomeScreen.reset();
             });
     
-            animateOnce('fade-in', playAgainDiv, false);
-            animateOnce('bounce', winnerDiv, false, true);
-            animateOnce('expand', playSameButton, false);
-            animateOnce('expand', playNewButton, false);
+            animateOnce('fade-in', playAgainDiv, {deleteElementAfter : false});
+            animateOnce('bounce', winnerDiv, {removeClassAfter : true});
+            animateOnce('expand', playSameButton);
+            animateOnce('expand', playNewButton);
     
         })();
 
@@ -114,93 +205,6 @@ const game = (function() {
         });
 
         return {display};
-
-    })();
-
-    const gameboard = (function() {
-
-        let gameContainer = document.createElement('div');
-        const boardArr = [];
-
-        const setSpace = (function(spaceButton) {
-
-            spaceButton.value = players[_getTurn()].getVal();
-            spaceButton.classList.remove('open');
-            spaceButton.classList.add('taken');
-            spaceButton.textContent = spaceButton.value;
-
-        });
-
-        const reset = (function() {
-
-            let i = 5;
-
-            boardArr.forEach(spaceButton => {
-                spaceButton.disabled = false;
-                spaceButton.textContent = '';
-                spaceButton.value = i;
-                spaceButton.className = 'open space';
-                i++;
-            });
-
-        });
-    
-        const _init = (function(){
-
-            const spaceButton = document.createElement('button');
-
-            for (let i = 0; i <= 9; i++) boardArr.push(spaceButton.cloneNode());
-            boardArr.forEach(spaceButton => {
-                spaceButton.addEventListener('click', eve => {
-                    setSpace(spaceButton);
-                    _changeTurn();
-                    checkWin();
-                    spaceButton.disabled = true;
-                });
-            });
-
-            reset();
-
-        })();
-    
-        const displayBoard = (function() {
-
-            gameContainer.className = 'game-container';
-            boardArr.forEach(e => {
-                gameContainer.appendChild(e);
-            });
-            gameModuleContainer.append(gameContainer);
-
-        });
-
-        const destroy = (function() {
-
-            reset();
-            gameModuleContainer.removeChild(gameContainer);
-
-        });
-    
-    
-        const checkWin = (function() {
-
-            if (
-                (boardArr[4].value === boardArr[0].value && boardArr[4].value === boardArr[8].value) |
-                (boardArr[4].value === boardArr[1].value && boardArr[4].value === boardArr[7].value) |
-                (boardArr[4].value === boardArr[2].value && boardArr[4].value === boardArr[6].value) |
-                (boardArr[4].value === boardArr[3].value && boardArr[4].value === boardArr[5].value) ) {
-                    _playAgainScreen.display(boardArr[4].value);
-            } else if (
-                    (boardArr[0].value === boardArr[1].value && boardArr[0].value === boardArr[2].value) |
-                    (boardArr[0].value === boardArr[3].value && boardArr[0].value === boardArr[6].value) ) {
-                    _playAgainScreen.display(boardArr[0].value);
-            } else if (
-                    (boardArr[8].value === boardArr[5].value && boardArr[8].value === boardArr[2].value) |
-                    (boardArr[8].value === boardArr[7].value && boardArr[8].value === boardArr[6].value) ) {
-                    _playAgainScreen.display(boardArr[8].value);
-                    };
-        });
-        
-        return {displayBoard, reset, destroy};
 
     })();
     
@@ -229,11 +233,11 @@ const game = (function() {
 
 const welcomeScreen = (function() {
 
-    let header = document.createElement('div');
-    let title = document.createElement('span');
-    let welcomeTo = document.createElement('span');
-    let underlineAnimation = document.createElement('span');
-    let playerSelectorDiv = document.createElement('div');
+    let header = div.cloneNode();
+    let title = span.cloneNode();
+    let welcomeTo = span.cloneNode();
+    let underlineAnimation = span.cloneNode();
+    let playerSelectorDiv = div.cloneNode();
 
     const _init = (function() {
 
@@ -249,7 +253,7 @@ const welcomeScreen = (function() {
         welcomeTo.addEventListener('animationend', function() {
             underlineAnimation.classList.add('expand')
         }, {once : true});
-        animateOnce('bounce-from-top', welcomeTo, false, true);
+        animateOnce('bounce-from-top', welcomeTo, {removeClassAfter : true});
 
         title.append(welcomeTo)
         header.append(title);
@@ -258,8 +262,8 @@ const welcomeScreen = (function() {
 
     const _destroy = (function() {
 
-        animateOnce('slide-left', welcomeTo, true);
-        animateOnce('slide-down', playerSelectorDiv, true);
+        animateOnce('slide-left', welcomeTo, {deleteElementAfter : true});
+        animateOnce('slide-down', playerSelectorDiv, { deleteElementAfter : true});
         gameModuleContainer.classList.remove('welcome-screen');
 
     });
@@ -271,7 +275,7 @@ const welcomeScreen = (function() {
 
     });
 
-    const _getPlayers = (function() {
+    const _getPlayerTypes = (function() {
 
         let forms = gameModuleContainer.querySelectorAll('.player-form');
 
@@ -285,9 +289,9 @@ const welcomeScreen = (function() {
 
     });
 
-    const _start = (function() {
+    const _submitPlayers = (function() {
 
-        _getPlayers();
+        _getPlayerTypes();
         _destroy();
         game.start();
 
@@ -324,13 +328,13 @@ const welcomeScreen = (function() {
             playerSelectorDiv.appendChild(playerForm);
         };
 
-        let startGameButton = document.createElement('button')
+        let startGameButton = button.cloneNode()
         startGameButton.textContent = 'START GAME';
         startGameButton.classList.add('start-button');
-        startGameButton.addEventListener('click', _start);
+        startGameButton.addEventListener('click', _submitPlayers);
         playerSelectorDiv.append(startGameButton);
 
-        animateOnce('expand', playerSelectorDiv, false, false);
+        animateOnce('expand', playerSelectorDiv);
         _display();
 
     })();
