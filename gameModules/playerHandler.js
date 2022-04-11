@@ -58,8 +58,6 @@ const playerModule = (function () {
 
     });
 
-    return {};
-
 })();
 
 export default playerModule;

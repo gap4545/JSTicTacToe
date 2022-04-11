@@ -2,59 +2,94 @@ const playerTypeFormsModule = (function() {
     
     const myFunctions = import('../myFunctions');
     const eventEmitter = import('./eventEmitter.js');
-
+    
     let playerOneForm;
     let playerTwoForm;
-    let computerOneDifficulty;
-    let computerTwoDifficulty;
-    const startGameButton = document.createElement('button');
+    let computerOneDifficulty = 'Select Difficulty';
+    let computerTwoDifficulty = 'Select Difficulty';
 
-    const _changeDifficultyVisibility = (function(playerNumber, typeSelected) {
-        let playerForm = (playerNumber === 1) ? playerOneForm : playerTwoForm;
-        if (typeSelected === 'human') {
-            playerForm.classList.remove('expand-form-bottom');
-            myFunctions.animateOnce('shrink-form-bottom', playerForm);
-        } else if (typeSelected === 'computer') {
-            playerForm.classList.remove('shrink-form-bottom');
-            myFunctions.animateOnce('expand-form-bottom', playerForm);
-        };
+    const _DifficultyDropDown = (function (playerNumber) {
+
+        let computerDifficulty = (playerNumber === 1) ? computerOneDifficulty : computerTwoDifficulty;
+
+        const dropDownContainer = document.createElement('div');
+        dropDownContainer.classList.add('difficulty-container');
+
+        const dropDownButton = document.createElement('button');
+        dropDownButton.classList.add('drop-btn');
+        dropDownButton.textContent = computerDifficulty;
+        
+        const dropDownContent = document.createElement('div');
+        dropDownContent.classList.add('difficulty-content');
+        
+        const normalDifficulty = document.createElement('button');
+        normalDifficulty.classList.add('difficulty-level');
+        normalDifficulty.onclick = eventEmitter.emit('changeDifficulty', {difficulty : 'Normal', playerNumber : playerNumber});
+
+        const impossibleDifficulty = document.createElement('button');
+        impossibleDifficulty.classList.add('difficulty-level');
+        impossibleDifficulty.onclick = eventEmitter.emit('changeDifficulty', {difficulty : 'Impossible', playerNumber : playerNumber});
+
+        dropDownContent.append(normalDifficulty, impossibleDifficulty);
+        dropDownContainer.append(dropDownButton, dropDownContent);
+
+        return dropDownContainer;
+        
     });
 
-    const _changeDifficulty = (function(computerNumber, selectedDifficultyDiv, difficultyContainer) {
-        let dropDownDiv = document.createElement('div');
-        dropDownDiv.classList.add('difficulty-drop-down');
+    const _changeDifficulty = (function({difficulty, playerNumber}) {
 
-        let normalDiv = document.createElement('div');
-        normalDiv.classList.add('difficulty-level');
-        normalDiv.textContent = 'Normal';
+        (playerNumber === 1) ? computerOneDifficulty = difficulty : computerTwoDifficulty = difficulty;
 
-        let impossibleDiv = document.createElement('div');
-        impossibleDiv.classList.add('difficulty-level');
-        impossibleDiv.textContent = 'Impossible';
+    });
 
-        myFunctions.animateOnce('show-drop-down', difficultyContainer);
-        dropDownDiv.append(normalDiv, impossibleDiv);
-        difficultyContainer.append(dropDownDiv);
+    const _showDifficultyDropDown = (function({playerNumber}) {
 
-        // ! USE BUTTON FOR DROP DOWN. CAN USE .DISABLE 
+        let playerForm = (playerNumber === 1) ? playerOneForm : playerTwoForm;
+        playerForm.classList.remove('shrink-form-bottom');
+        myFunctions.animateOnce('expand-form-bottom', playerForm);
 
-        impossibleDiv.addEventListener('click', () => {
-            selectedDifficultyDiv.textContent = impossibleDiv.textContent;
-            difficultyContainer.classList.remove('show-drop-down');
-            myFunctions.animateOnce('hide-drop-down', difficultyContainer);
-            difficultyContainer.removeChild(dropDownDiv);
-            (computerNumber === 1) ? computerOneDifficulty = 'impossible' : computerTwoDifficulty = 'impossible';
-        }, {once : true});
+    });
 
-        normalDiv.addEventListener('click', () => {
-            selectedDifficultyDiv.textContent = normalDiv.textContent;
-            dropDownDiv.classList.remove('show-drop-down');
-            myFunctions.animateOnce('hide-drop-down', difficultyContainer);
-            difficultyContainer.removeChild(dropDownDiv);
-            (computerNumber === 1) ? computerOneDifficulty = 'normal' : computerTwoDifficulty = 'normal';
-        }, {once : true})
+    const _hideDifficultyDropDown = (function({playerNumber}) {
+
+        let playerForm = (playerNumber === 1) ? playerOneForm : playerTwoForm;
+        playerForm.classList.remove('expand-form-bottom');
+        myFunctions.animateOnce('shrink-form-bottom', playerForm);
 
     })
+
+
+    //     let normalDiv = document.createElement('div');
+    //     normalDiv.classList.add('difficulty-level');
+    //     normalDiv.textContent = 'Normal';
+
+    //     let impossibleDiv = document.createElement('div');
+    //     impossibleDiv.classList.add('difficulty-level');
+    //     impossibleDiv.textContent = 'Impossible';
+
+    //     myFunctions.animateOnce('show-drop-down', dropDownDiv);
+    //     dropDownDiv.append(normalDiv, impossibleDiv);
+    //     difficultyContainer.append(dropDownDiv);
+
+    //     // ! USE BUTTON FOR DROP DOWN. CAN USE .DISABLE 
+
+    //     impossibleDiv.addEventListener('click', () => {
+    //         selectedDifficultyDiv.textContent = impossibleDiv.textContent;
+    //         difficultyContainer.classList.remove('show-drop-down');
+    //         myFunctions.animateOnce('hide-drop-down', difficultyContainer);
+    //         difficultyContainer.removeChild(dropDownDiv);
+    //         (computerNumber === 1) ? computerOneDifficulty = 'impossible' : computerTwoDifficulty = 'impossible';
+    //     }, {once : true});
+
+    //     normalDiv.addEventListener('click', () => {
+    //         selectedDifficultyDiv.textContent = normalDiv.textContent;
+    //         dropDownDiv.classList.remove('show-drop-down');
+    //         myFunctions.animateOnce('hide-drop-down', difficultyContainer);
+    //         difficultyContainer.removeChild(dropDownDiv);
+    //         (computerNumber === 1) ? computerOneDifficulty = 'normal' : computerTwoDifficulty = 'normal';
+    //     }, {once : true})
+
 
     const _PlayerForm = (function(playerNumber) {
 
@@ -86,7 +121,9 @@ const playerTypeFormsModule = (function() {
         playerRadioButton.setAttribute('value', 'player');
         playerRadioButton.setAttribute('checked', 'true');
         playerRadioButton.addEventListener('click', e => {
-            _changeDifficultyVisibility(playerNumber, 'human');
+            eventEmitter.emit('hideDifficultyDropDown', {playerNumber : playerNumber});
+            eventEmitter.removeListener('hideDifficultyDropDown', _hideDifficultyDropDown);
+            eventEmitter.on('showDifficultyDropDown', _showDifficultyDropDown);
         });
         
         const playerRadioDiv = typeContainer.cloneNode();
@@ -101,19 +138,12 @@ const playerTypeFormsModule = (function() {
         computerRadioButton.setAttribute('id', `computer`);
         computerRadioButton.setAttribute('value', 'computer');
         computerRadioButton.addEventListener('click', e => {
-            _changeDifficultyVisibility(playerNumber, 'computer');
+            eventEmitter.emit('showDifficultyDropDown', {playerNumber : playerNumber});
+            eventEmitter.removeListener('showDifficultyDropDown', _showDifficultyDropDown);
+            eventEmitter.on('hideDifficultyDropDown', _hideDifficultyDropDown);
         });
 
-        const computerDifficultyDiv = document.createElement('div');
-        computerDifficultyDiv.classList.add('difficulty-container');
-
-        const selectedDifficulty = document.createElement('div');
-        selectedDifficulty.classList.add(`computer${playerNumber}-difficulty`);
-        selectedDifficulty.textContent = 'Select Difficulty';
-        selectedDifficulty.addEventListener('click', () => {
-            _changeDifficulty(playerNumber, selectedDifficulty, computerDifficultyDiv);
-        });
-        computerDifficultyDiv.append(selectedDifficulty);
+        const computerDifficultyDiv = _DifficultyDropDown(playerNumber);
         
         const computerRadioDiv = typeContainer.cloneNode();
         computerRadioDiv.append(computerRadioButton, computerLabel);
@@ -124,6 +154,9 @@ const playerTypeFormsModule = (function() {
     });
 
     const _init = (function () {
+
+        eventEmitter.on('changeDifficulty', _changeDifficulty);
+        eventEmitter.on('showDifficultyDropDown', _showDifficultyDropDown);
 
         playerOneForm = _PlayerForm(1);
         playerTwoForm = _PlayerForm(2);

@@ -39,7 +39,7 @@ const welcomeScreen = (function() {
         title.textContent = 'TIC-TAC-TOE';
         welcomeTo.textContent = 'Welcome to ';
 
-        startButton.onclick = eventEmitter.emit('startGame');
+        startButton.onclick = eventEmitter.emit('startGame', {});
 
         _animations();
 
@@ -64,7 +64,7 @@ const welcomeScreen = (function() {
 
     const getNewPlayers = (function() {
         myFunctions.animateOnce('expand', playerFormsContainer, {removeClassAfter : true})
-        
+        eventEmitter.on('startGame', _destroy);
     });
 
     const _events = (function() {

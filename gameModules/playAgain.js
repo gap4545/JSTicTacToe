@@ -11,7 +11,10 @@ const playAgainScreen = (function() {
     const playSameButton = document.createElement('button');
     const playNewButton = document.createElement('button');
 
-    const _destroy = (function () {
+    const destroy = (function () {
+
+        eventEmitter.removeListener('playSame', destroy);
+        eventEmitter.removeListener('playNew', destroy);
 
         myFunctions.animateOnce('shrink', winnerDiv, {deleteElementAfter : true, removeClassAfter : true});
         myFunctions.animateOnce('shrink', playSameButton, {deleteElementAfter : true, removeClassAfter : true});
@@ -20,7 +23,7 @@ const playAgainScreen = (function() {
 
     });
 
-    const _createScreen = (function() {
+    const createScreen = (function() {
 
         playAgainDiv.classList.add('play-again-container');
 
@@ -28,18 +31,20 @@ const playAgainScreen = (function() {
 
         playSameButton.classList.add('play-again-button');
         playSameButton.textContent = 'Play Again With Same Players';
-        playSameButton.addEventListener('click', e => {
-            gameboard.reset();
-            _destroy();
-        });
+        playSameButton.onclick = eventEmitter.emit('playSame', {})
+        // playSameButton.addEventListener('click', e => {
+        //     gameboard.reset();
+        //     destroy();
+        // });
 
         playNewButton.classList.add('play-again-button');
         playNewButton.textContent = 'Play Again With New Players';
-        playNewButton.addEventListener('click', e => {
-            _destroy();
-            gameboard.destroy();
-            welcomeScreen.reset();
-        });
+        playNewButton.onclick = eventEmitter.emit('playNew', {});
+        // playNewButton.addEventListener('click', e => {
+        //     destroy();
+        //     gameboard.destroy();
+        //     welcomeScreen.reset();
+        // });
 
         myFunctions.animateOnce('fade-in', playAgainDiv, {deleteElementAfter : false});
         myFunctions.animateOnce('bounce', winnerDiv, {removeClassAfter : true});
@@ -50,13 +55,19 @@ const playAgainScreen = (function() {
 
     const display = (function (winningPlayerNumber) {
 
-        winnerDiv.textContent = `Player ${Number(winningPlayerNumber) + 1} Wins!`;
+        eventEmitter.on('playSame', destroy);
+        eventEmitter.on('playNew', destroy);
+
+        winnerDiv.textContent = `Player ${Number(winningPlayerNumber)} Wins!`;
+
         gameModuleContainer.append(playAgainDiv);
         playAgainDiv.append(winnerDiv, playSameButton, playNewButton);
 
     });
 
-    return {display};
+    const events = (function () {
+        eventEmitter.on('gameover', display);
+    })();
 
 })();
 
