@@ -11,32 +11,24 @@
     padding: 0;
 }
 
+/* START OF ANIMATIONS */
+
 @keyframes bounce-from-top {
     0% {
-/*         top: -50%;
-        left: -35%; */
         opacity: 0;
         transform: translate(-50%, -100%) scale(1);
 }
     25% {
-/*         top: 130%;
-        left: -35%; */
         opacity: 1;
         transform: translate(-50%, 85%) scale(1.1, 0.8);
     }
     50% {
-/*         top: -25%;
-        left: -35%; */
         transform: translate(-50%, -75%) scale(0.9, 1.1);
     }
     100% {
-/*         top: 50%;
-        left: -35%; */
         transform: translate(-50%, -50%) scale(1)
     }
 }
-
-/* START OF ANIMATIONS */
 
 @keyframes slide-down {
     from {
@@ -58,12 +50,30 @@
     }
 }
 
+@keyframes expand-form-bottom {
+    from {
+        padding-bottom: 15px;
+    } 
+    to {
+        padding-bottom: 35px;
+    }
+}
+
 @keyframes shrink {
     from {
         transform: scale(1);
     }
     to {
         transform: scale(0);
+    }
+}
+
+@keyframes shrink-form-bottom {
+    from {
+        padding-bottom: 35px
+    }
+    to {
+        padding-bottom: 15px;
     }
 }
 
@@ -85,6 +95,24 @@
     }
 }
 
+@keyframes hide-drop-down {
+    from {
+        height: max-content;
+    }
+    to {
+        height: 20px;
+    }
+}
+
+@keyframes show-drop-down {
+    from {
+        height: 20px;
+    }
+    to {
+        height: max-content;
+    }
+}
+
 .radio-button-animation {
     animation: radio-animation 1s;
 }
@@ -100,8 +128,25 @@
 .expand {
     animation: expand 1s forwards;
 }
+
+.expand-form-bottom {
+    animation: expand-form-bottom 1s forwards;
+}
+
+.show-drop-down {
+    animation: show-drop-down 1s forwards;
+}
+
+.hide-drop-down {
+    animation: hide-drop-down 1s forwards;
+}
+
 .shrink {
     animation: shrink 1s;
+}
+
+.shrink-form-bottom {
+    animation: shrink-form-bottom 1s forwards;
 }
 
 .fade-out {
@@ -114,6 +159,15 @@ body {
 }
 
 /* END OF ANIMATIONS */
+
+.module-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+}
+
 
 /* START OF HEADER STYLING */
 
@@ -156,23 +210,16 @@ body {
 
 /* END OF HEADER STYLING */
 
-/* START OF WELCOME SCREEN STYLING */
-
-.welcome-screen {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    align-items: center;
-}
+/* START OF FORM STYLING */
 
 .player-forms-container {
    height: max-content;
    width: max-content;
    display: grid;
    grid-template-columns: 1fr 1fr;
-   grid-template-rows: 1fr 1fr;
+   grid-template-rows: 200px 1fr;
    grid-template-areas: 'player1-form player2-form' 'start-but start-but';
+   row-gap: 40px;
    padding: 25px;
    border: 2px solid var(--border-col);
    border-radius: 10px;
@@ -213,9 +260,13 @@ form.player-form[name=player2-form] {
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* justify-content: center; */
     align-items: center;
-    padding: 15px;
+    height: max-content;
+    padding-top: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
     margin: 10px;
     border: 1px solid var(--border-col);
     border-radius: 7px;
@@ -233,11 +284,12 @@ form.player-form[name=player2-form] {
 
 .type-container {
     position: relative;
+    height: 33px;
 }
 
 .radio-label {
     position: absolute;
-    top: 43%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 18px;
@@ -271,10 +323,33 @@ form.player-form[name=player2-form] {
     background-color: var(--main-font-col);
 }
 
-/* END OF WELCOME SCREEN STYLING */
+.difficulty-container {
+    border: 1px solid red;
+    width: 110px;
+    height: 20px;
+    position: absolute;
+    bottom: 10%;
+}
 
+.difficulty-drop-down {
+    position: absolute;
+}
+
+/* END OF FORM STYLING */
+
+/* START OF GAMEBOARD STYLING */
+
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    height: 350px;
+    width: 350px;
+    margin-top: 50px;
+}
 
 .space {
-    width: 30px;
-    height: 30px;
+    appearance: none;
+    background-color: inherit;
+    border: 1px solid red;
 }
