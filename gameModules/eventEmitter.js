@@ -23,13 +23,14 @@ class MyEventEmitter {
       this._events[name] = this._events[name].filter(filterListeners);
     }
   
-    emit(name, data = null) {
+    emit(name, data) {
       if (!this._events[name]) {
         throw new Error(`Can't emit an event. Event "${name}" doesn't exits.`);
       }
   
       const fireCallbacks = (callback) => {
-        callback(data);
+        try {callback(data);}
+        catch {callback();}
       };
   
       this._events[name].forEach(fireCallbacks);

@@ -58,6 +58,7 @@ const welcomeScreen = (function() {
         myFunctions.animateOnce('slide-down', playerFormsContainer, {deleteElementAfter : true});
         gameModuleContainer.classList.remove('welcome-screen');
 
+        eventEmitter.emit('showBoard', {});
         eventEmitter.on('getNewPlayers', getNewPlayers);
 
     });
