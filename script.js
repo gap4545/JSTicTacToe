@@ -1,6 +1,9 @@
 const game = (function () {
 
     const gameModuleContainer = document.querySelector('.module-container');
+    const contentContainer = document.createElement('div');
+    let turn;
+    const boardArray = [];
 
     function animateOnce(animationClass, element, {deleteElementAfter = false, removeClassAfter = false} = {}) {
 
@@ -155,29 +158,28 @@ const game = (function () {
     const playAgainScreen = (function() {
 
         const playAgainDiv = document.createElement('div');
-        const winnerDiv = document.createElement('div');
+        const winnerHeader = document.createElement('h3');
         const playSameButton = document.createElement('button');
         const playNewButton = document.createElement('button');
     
         const _destroy = (function () {
-    
-            animateOnce('shrink', winnerDiv, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('shrink', winnerHeader, {deleteElementAfter : true, removeClassAfter : true});
             animateOnce('shrink', playSameButton, {deleteElementAfter : true, removeClassAfter : true});
             animateOnce('shrink', playNewButton, {deleteElementAfter : true, removeClassAfter : true});
             animateOnce('fade-out', playAgainDiv, {deleteElementAfter : true, removeClassAfter : true});
-    
         });
     
         const createScreen = (function() {
     
             playAgainDiv.classList.add('play-again-container');
     
-            winnerDiv.classList.add('winner-text');
+            winnerHeader.classList.add('winner-text');
     
             playSameButton.classList.add('play-again-button');
             playSameButton.textContent = 'Play Again With Same Players';
             playSameButton.addEventListener('click', () => {
                 gameboard.resetBoard();
+                gameLogic.reset();
                 _destroy();
             });
     
@@ -187,21 +189,22 @@ const game = (function () {
                 _destroy();
                 gameboard.destroy();
                 gameLogic.resetPlayers();
+                gameLogic.reset();
                 welcomeScreen.getNewPlayers();
             });
     
-            animateOnce('fade-in', playAgainDiv, {deleteElementAfter : false});
-            animateOnce('expand', playSameButton);
-            animateOnce('expand', playNewButton);
+            animateOnce('fade-in', playAgainDiv, {removeClassAfter : true});
+            animateOnce('expand', playSameButton, {removeClassAfter : true});
+            animateOnce('expand', playNewButton, {removeClassAfter : true});
     
         })();
     
         const display = (function (winningPlayerNumber) {
     
-            winnerDiv.textContent = `Player ${winningPlayerNumber} Wins!`;
+            winnerHeader.textContent = `Player ${winningPlayerNumber} Wins!`;
     
-            playAgainDiv.append(winnerDiv, playSameButton, playNewButton);
-            gameModuleContainer.append(playAgainDiv);
+            playAgainDiv.append(winnerHeader, playSameButton, playNewButton);
+            contentContainer.append(playAgainDiv);
     
         });
 
@@ -212,9 +215,10 @@ const game = (function () {
     const gameLogic = (function() {
 
         let players = [];
-        let turn;
         let turnsTaken = 0;
+        const maxTurns = 9;
         let gameOver = false;
+        let openLocations = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let checkWins = [
             [], // 0, 4, 8
             [], // 1, 4, 7
@@ -225,7 +229,7 @@ const game = (function () {
             [], // 0, 1, 2
             [], // 6, 7, 8
         ];
-        let spaceInWinWay = [
+        const spaceInWinWay = [
             [0, 4, 6],
             [1, 6],
             [2, 5, 6],
@@ -250,8 +254,6 @@ const game = (function () {
         // 7 in 8,2
         // 8 in 0,8,6
 
-        let openLocations = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-
         const init = (function() {
             turn = Math.floor(Math.random() * 2) + 1; // Set turn to 1 or 2
         })();
@@ -273,31 +275,34 @@ const game = (function () {
             });
             
             const getMove = (function() {
-                for (let location of openLocations) {
-                    for (let winWay of spaceInWinWay[location]) {
-                        if (checkWins[winWay][0] === checkWins[winWay][1]) {
-                            return location;
-                        }
-                    }
-                }
-                return openLocations[Math.floor(Math.random() * openLocations.length)];
+                // for (let location of openLocations) {
+                //     for (let winWay of spaceInWinWay[location]) {
+                //         if (winWay.length < 2) {continue;};
+                //         if (checkWins[winWay][0] === checkWins[winWay][1]) {
+                //             return location;
+                //         };
+                //     };
+                // };
+                let move = openLocations[Math.floor(Math.random() * openLocations.length)]
+                openLocations.splice(move, 1);
+                return move;
             });
     
             return {type, getMove};
     
         });
-
+        
         const createPlayers = (function() {
             players.push((document.querySelector('input[name="player1-radio"]:checked').value === 'player') ? _Player() : _Computer());
             players.push((document.querySelector('input[name="player2-radio"]:checked').value === 'player') ? _Player() : _Computer());
-            if (players[turn - 1].type() === 'computer') {setLocationValue(players[turn - 1].getMove());};
+            if (players[turn - 1].type() === 'computer') {takeTurn(players[turn - 1].getMove());};
         });
 
         const resetPlayers = (function () {
             players = [];
         });
 
-        const _reset = (function() {
+        const reset = (function() {
             checkWins = [
                 [],
                 [],
@@ -309,12 +314,19 @@ const game = (function () {
                 [],
             ];
             openLocations = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            turnsTaken = 0;
+            gameOver = false;
         });
         
         const _changeTurn = (function() {
+            console.log(checkWins);
             turn = (turn === 1) ? 2 : 1;
-            if (players[turn - 1].type() === 'computer' && !gameOver) {
-                gameboard.setSpace(players[turn - 1].getMove());
+        });
+
+        const _checkGameState = (function () {
+            if (turnsTaken === maxTurns) {
+                gameOver = true;
+                return playAgainScreen.display(0); // TODO: Add tie screen
             };
         });
         
@@ -322,27 +334,39 @@ const game = (function () {
             if (wayToCheck[0] === wayToCheck[1] && wayToCheck[0] === wayToCheck[2]) {
                 gameOver = true;
                 playAgainScreen.display(turn);
-                _reset();
-            }
+                reset();
+            };
         });
     
-        const setLocationValue = (function(location) {
+        const setSpaceValue = (function(location) {
             let ways = spaceInWinWay[location];
-            openLocations.splice(openLocations.indexOf(location), 1);
             
             for(let way of ways) {
                 checkWins[way].push(turn);
                 _checkWin(checkWins[way]);
             }
-            turnsTaken++;
-            _changeTurn();
-        });
-        
-        const getTurn = (function() {
-            return turn;
         });
 
-        return {setLocationValue, getTurn, createPlayers, resetPlayers};
+        const takeTurn = (function(location) {
+            turnsTaken++;
+            setSpaceValue(location);
+            setSpaceToken(location);
+            boardArray[location].disabled = true;
+            _changeTurn();
+            if (players[turn - 1].type() === 'computer' && gameOver === false && turnsTaken < maxTurns) {
+                takeTurn(players[turn - 1].getMove());
+            };
+        });
+
+        const setSpaceToken = (function(location) {
+            let tokenSpan = document.createElement('span');
+            tokenSpan.classList.add('player-token');
+            animateOnce('expand-token', tokenSpan, {removeClassAfter : true})
+            tokenSpan.textContent = (turn === 1) ? 'X' : 'O';
+            boardArray[location].append(tokenSpan);
+        });
+
+        return {takeTurn, createPlayers, resetPlayers, reset};
     })();
 
     const gameboard = (function() {
@@ -352,12 +376,9 @@ const game = (function () {
         const column2 = document.createElement('div');
         const row1 = document.createElement('div');
         const row2= document.createElement('div');
-        const animatedPlayerToken = document.createElement('span');
         const spaceButton = document.createElement('button');
-        const boardArray = [];
         
-        const _init = (function(){
-            animatedPlayerToken.classList.add('player-token');
+        const _init = (function() {
             boardContainer.classList.add('board-container');
             spaceButton.classList.add('space', 'open');
             column1.classList.add('board-column', 'column1');
@@ -366,26 +387,14 @@ const game = (function () {
             row2.classList.add('board-row', 'row2');
 
             boardContainer.append(column1, column2, row1, row2);
-            animateOnce('from-right', boardContainer, {removeClassAfter : true});
         })();
-    
-        
-        const setSpace = (function(location) {
-            let tokenSpan = animatedPlayerToken.cloneNode();
-            console.log(location);
-            boardArray[location].value = gameLogic.getTurn();
-            tokenSpan.textContent = (gameLogic.getTurn() === 1) ? 'X' : 'O';
-            gameLogic.setLocationValue(location);
-            boardArray[location].append(tokenSpan);
-            boardArray[location].disabled = true;
-        });
         
         const _createBoard = (function(){
             for (let location = 0; location < 9; location++) {
                 let space = spaceButton.cloneNode();
                 space.value = location;
                 space.addEventListener('click', () => {
-                    setSpace(location);
+                    gameLogic.takeTurn(location);
                 });
                 
                 boardArray.push(space);
@@ -394,22 +403,25 @@ const game = (function () {
         })();
         
         const displayBoard = (function() {
-            gameModuleContainer.append(boardContainer);
+            animateOnce('from-right', boardContainer, {removeClassAfter : true});
+            contentContainer.append(boardContainer);
         });
 
         const resetBoard = (function() {
             boardArray.forEach(space => {
                 space.disabled = false;
-                space.innerHTML = '';
+                if (space.querySelector('span') != null) {
+                animateOnce('shrink-token', space.querySelector('span'), {deleteElementAfter : true, removeClassAfter : true})
+                }
             });
         });
     
         const destroy = (function() {
-            animateOnce('slide-down', boardContainer, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('to-left', boardContainer, {deleteElementAfter : true, removeClassAfter : true});
             resetBoard();
         });
 
-        return {resetBoard, destroy, displayBoard, setSpace};
+        return {resetBoard, destroy, displayBoard};
 
     })();
 
@@ -428,12 +440,13 @@ const game = (function () {
             welcomeTo.addEventListener('animationend', function() {
                 animateOnce('expand', underlineAnimation, {removeClassAfter : true});
                 welcomeTo.append(underlineAnimation);
-                animateOnce('expand', playerFormsContainer, {removeClassAfter : true});
-                gameModuleContainer.append(playerFormsContainer);
+                animateOnce('from-right', playerFormsContainer, {removeClassAfter : true});
+                contentContainer.append(playerFormsContainer);
             }, {once : true});
         });
     
         const _init = (function() {
+            contentContainer.classList.add('content');
             header.classList.add('header');
             title.classList.add('game-title');
             welcomeTo.classList.add('welcome-to-span');
@@ -455,20 +468,19 @@ const game = (function () {
     
             title.append(welcomeTo);
             header.append(title);
-            gameModuleContainer.append(header);
+            gameModuleContainer.append(header, contentContainer);
         })();
     
         const _destroy = (function() {
-            // TODO: Finish animating slide-down and slide-left for v
-            if (document.querySelector('.welcome-to-span') != null) animateOnce('slide-down', welcomeTo, {deleteElementAfter : true});
-            animateOnce('expand', playerFormsContainer, {deleteElementAfter : true});
+            if (document.querySelector('.welcome-to-span') != null) animateOnce('down', welcomeTo, {deleteElementAfter : true});
+            animateOnce('to-left', playerFormsContainer, {deleteElementAfter : true, removeClassAfter : true});
             gameLogic.createPlayers();
             gameboard.displayBoard();
         });
     
         const getNewPlayers = (function() {
-            animateOnce('expand', playerFormsContainer, {removeClassAfter : true})
-            gameModuleContainer.append(playerFormsContainer);
+            contentContainer.append(playerFormsContainer);
+            animateOnce('from-right', playerFormsContainer, {removeClassAfter : true})
         });
 
         return {getNewPlayers};
@@ -478,11 +490,3 @@ const game = (function () {
 
 
 })();
-
-
-
-
-
-
-
-
