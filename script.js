@@ -1,91 +1,185 @@
-let gameModuleContainer = document.querySelector('.module-container');
+const game = (function () {
 
-function animateOnce(animationClass, element, deleteElement = false, removeClass = false) {
-
-    element.classList.add(animationClass);
-    element.addEventListener('animationend', e => {
-        if (deleteElement == true) {
-            element.parentNode.removeChild(element);
-        };
-        if (removeClass == true) {
-            element.classList.remove(animationClass);
-        };
-    }, {once : true});
-
-};
-
-const game = (function() {
-
-    let players = [];
+    const gameModuleContainer = document.querySelector('.module-container');
+    const contentContainer = document.createElement('div');
     let turn;
+    const boardArray = [];
 
-    const _Player = (function(val) {
+    function animateOnce(animationClass, element, {deleteElementAfter = false, removeClassAfter = false} = {}) {
 
-        let v = val;
+        element.classList.add(animationClass);
+        element.addEventListener('animationend', e => {
+            if (deleteElementAfter == true) {
+                element.parentNode.removeChild(element);
+            };
+            if (removeClassAfter == true) {
+                element.classList.remove(animationClass);
+            };
+        }, {once : true});
+    
+    };
+
+    const playerTypeForms = (function() {
         
-        const getVal = (function() {
-            return v;
+        let playerOneForm;
+        let playerTwoForm;
+        let computerOneDifficulty = 'Select Difficulty';
+        let computerTwoDifficulty = 'Select Difficulty';
+    
+        const _changeDifficulty = (function(difficulty, playerNumber, dropDownButton) {
+    
+            (playerNumber === 1) ? computerOneDifficulty = difficulty : computerTwoDifficulty = difficulty;
+            dropDownButton.textContent = difficulty;
+    
         });
 
-        const type = (function() {
-            return 'Player';
-        })
+        const _DifficultyDropDown = (function (playerNumber) {
     
-        return {getVal, type};
-
-    });
-
-    const _Computer = (function(val) {
-
-        const {getVal} = _Player(val);
-
-        const type = (function() {
-            return 'Computer';
+            let computerDifficulty = (playerNumber === 1) ? computerOneDifficulty : computerTwoDifficulty;
+    
+            const dropDownContainer = document.createElement('div');
+            dropDownContainer.classList.add('difficulty-container');
+    
+            const dropDownButton = document.createElement('button');
+            dropDownButton.classList.add('drop-btn');
+            dropDownButton.setAttribute('type', 'button');
+            dropDownButton.textContent = computerDifficulty;
+            
+            const dropDownContent = document.createElement('div');
+            dropDownContent.classList.add('difficulty-content');
+            
+            const normalDifficulty = document.createElement('button');
+            normalDifficulty.setAttribute('type', 'button');
+            normalDifficulty.classList.add('difficulty-level');
+            normalDifficulty.textContent = 'Normal';
+            normalDifficulty.addEventListener('click', () => {
+                _changeDifficulty('Normal', playerNumber, dropDownButton);
+            });
+    
+            const impossibleDifficulty = document.createElement('button');
+            impossibleDifficulty.setAttribute('type', 'button');
+            impossibleDifficulty.classList.add('difficulty-level');
+            impossibleDifficulty.textContent = 'Impossible';
+            impossibleDifficulty.addEventListener('click', () => {
+                _changeDifficulty('Impossible', playerNumber, dropDownButton);
+            });
+    
+            dropDownContent.append(normalDifficulty, impossibleDifficulty);
+            dropDownContainer.append(dropDownButton, dropDownContent);
+    
+            return dropDownContainer;
+            
         });
-        
-        //Define computer logic here
-
-        return {getVal, type};
-
-    });
     
-    const _getTurn = (function() {
-        return turn;
-    });
     
-    const _changeTurn = (function() {
-
-        turn = (turn === 0) ? 1 : 0; // If turn equals 0 turn becomes 1 if not turn equals 0;
-        console.log(turn);
-
-    });
+        const _showDifficultyDropDown = (function(playerForm) {
     
-    const _playAgainScreen = (function() {
+            playerForm.classList.remove('shrink-form-bottom');
+            animateOnce('expand-form-bottom', playerForm);
+    
+        });
+    
+        const _hideDifficultyDropDown = (function(playerForm) {
+    
+            playerForm.classList.remove('expand-form-bottom');
+            animateOnce('shrink-form-bottom', playerForm);
+    
+        });
+    
+        const _PlayerForm = (function(playerNumber) {
+    
+            const playerForm = document.createElement('form');
+            playerForm.classList.add('player-form');
+            playerForm.setAttribute('name', `player${playerNumber}-form`);
+    
+            const radioButton = document.createElement('input');
+            radioButton.setAttribute('type', 'radio');
+    
+            const typeContainer = document.createElement('div');
+            typeContainer.classList.add('type-container');
+    
+            const formHeader = document.createElement('h2');
+            formHeader.classList.add('player-form-header');
+            formHeader.textContent = `Player ${playerNumber}`;
+    
+            const formLabel = document.createElement('label');
+            formLabel.classList.add('radio-label');
+            formLabel.setAttribute('for', 'radio-label');
+    
+            const playerLabel = formLabel.cloneNode();
+            playerLabel.textContent = 'Human';
+    
+            const playerRadioButton = radioButton.cloneNode();
+            playerRadioButton.classList.add('player-radio-button');
+            playerRadioButton.setAttribute('name', `player${playerNumber}-radio`)
+            playerRadioButton.setAttribute('id', `player`)
+            playerRadioButton.setAttribute('value', 'player');
+            playerRadioButton.setAttribute('checked', 'true');
+            playerRadioButton.addEventListener('click', () => {
+                _hideDifficultyDropDown(playerForm);
+            });
+            
+            const playerRadioDiv = typeContainer.cloneNode();
+            playerRadioDiv.append(playerRadioButton, playerLabel);
+            
+            const computerLabel = formLabel.cloneNode();
+            computerLabel.textContent = 'Computer';
+    
+            const computerRadioButton = radioButton.cloneNode();
+            computerRadioButton.classList.add('computer-radio-button');
+            computerRadioButton.setAttribute('name', `player${playerNumber}-radio`);
+            computerRadioButton.setAttribute('id', `computer`);
+            computerRadioButton.setAttribute('value', 'computer');
+            computerRadioButton.addEventListener('click', e => {
+                _showDifficultyDropDown(playerForm);
+            });
+    
+            const computerDifficultyDiv = _DifficultyDropDown(playerNumber);
+            
+            const computerRadioDiv = typeContainer.cloneNode();
+            computerRadioDiv.append(computerRadioButton, computerLabel);
+    
+            playerForm.append(formHeader, playerRadioDiv, computerDifficultyDiv, computerRadioDiv);
+            return playerForm;
+    
+        });
+    
+        const _init = (function () {
+    
+            playerOneForm = _PlayerForm(1);
+            playerTwoForm = _PlayerForm(2);
+    
+        })();
+    
+        return {playerOneForm, playerTwoForm, computerOneDifficulty, computerTwoDifficulty};
+    
+    })();
 
-        let playAgainDiv = document.createElement('div');
-        let winnerDiv = document.createElement('div');
-        let playSameButton = document.createElement('button');
-        let playNewButton = document.createElement('button');
+    const playAgainScreen = (function() {
 
+        const playAgainDiv = document.createElement('div');
+        const winnerHeader = document.createElement('h3');
+        const playSameButton = document.createElement('button');
+        const playNewButton = document.createElement('button');
+    
         const _destroy = (function () {
-
-            animateOnce('shrink', winnerDiv, true, true);
-            animateOnce('shrink', playSameButton, true, true);
-            animateOnce('shrink', playNewButton, true, true);
-            animateOnce('fade-out', playAgainDiv, true, true);
-
+            animateOnce('shrink', winnerHeader, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('shrink', playSameButton, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('shrink', playNewButton, {deleteElementAfter : true, removeClassAfter : true});
+            animateOnce('fade-out', playAgainDiv, {deleteElementAfter : true, removeClassAfter : true});
         });
-
-        const _creation = (function() {
-
+    
+        const createScreen = (function() {
+    
             playAgainDiv.classList.add('play-again-container');
     
-            winnerDiv.classList.add('winner-text');
-
+            winnerHeader.classList.add('winner-text');
+    
             playSameButton.classList.add('play-again-button');
             playSameButton.textContent = 'Play Again With Same Players';
-            playSameButton.addEventListener('click', e => {
-                gameboard.reset();
+            playSameButton.addEventListener('click', () => {
+                gameboard.resetBoard();
+                gameLogic.reset();
                 _destroy();
             });
     
@@ -93,255 +187,306 @@ const game = (function() {
             playNewButton.textContent = 'Play Again With New Players';
             playNewButton.addEventListener('click', e => {
                 _destroy();
-                players = [];
                 gameboard.destroy();
-                welcomeScreen.reset();
+                gameLogic.resetPlayers();
+                gameLogic.reset();
+                welcomeScreen.getNewPlayers();
             });
     
-            animateOnce('fade-in', playAgainDiv, false);
-            animateOnce('bounce', winnerDiv, false, true);
-            animateOnce('expand', playSameButton, false);
-            animateOnce('expand', playNewButton, false);
+            animateOnce('fade-in', playAgainDiv, {removeClassAfter : true});
+            animateOnce('expand', playSameButton, {removeClassAfter : true});
+            animateOnce('expand', playNewButton, {removeClassAfter : true});
     
         })();
-
-        const display = (function (winningPlayerVal) {
-
-            winnerDiv.textContent = `Player ${Number(winningPlayerVal) + 1} Wins!`;
-            gameModuleContainer.append(playAgainDiv);
-            playAgainDiv.append(winnerDiv, playSameButton, playNewButton);
-
+    
+        const display = (function (winningPlayerNumber) {
+    
+            winnerHeader.textContent = `Player ${winningPlayerNumber} Wins!`;
+    
+            playAgainDiv.append(winnerHeader, playSameButton, playNewButton);
+            contentContainer.append(playAgainDiv);
+    
         });
 
         return {display};
-
+    
     })();
 
-    const gameboard = (function() {
+    const gameLogic = (function() {
 
-        let gameContainer = document.createElement('div');
-        const boardArr = [];
+        let players = [];
+        let turnsTaken = 0;
+        const maxTurns = 9;
+        let gameOver = false;
+        let openLocations = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        let checkWins = [
+            [], // 0, 4, 8
+            [], // 1, 4, 7
+            [], // 2, 4, 6
+            [], // 3, 4, 5
+            [], // 0, 3, 6
+            [], // 2, 5, 8
+            [], // 0, 1, 2
+            [], // 6, 7, 8
+        ];
+        const spaceInWinWay = [
+            [0, 4, 6],
+            [1, 6],
+            [2, 5, 6],
+            [3, 4],
+            [0, 1, 2, 3],
+            [3, 5],
+            [2, 4, 7],
+            [1, 7],
+            [0, 5, 7]
+        ];
+    
+        // Board is arranged from left to right top to bottom 0-8
+        // check wins nested arrays are labelled with the locations that are in that way to win
+        // (space) (in way to win)
+        // 0 in 0,5,7,
+        // 1 in 2,7
+        // 2 in 3,6,7
+        // 3 in 4,5
+        // 4 in 0,2,3,4
+        // 5 in 4,6
+        // 6 in 3,5,8
+        // 7 in 8,2
+        // 8 in 0,8,6
 
-        const setSpace = (function(spaceButton) {
+        const init = (function() {
+            turn = Math.floor(Math.random() * 2) + 1; // Set turn to 1 or 2
+        })();
 
-            spaceButton.value = players[_getTurn()].getVal();
-            spaceButton.classList.remove('open');
-            spaceButton.classList.add('taken');
-            spaceButton.textContent = spaceButton.value;
+        const _Player = (function() {
+    
+            const type = (function() {
+                return 'player';
+            })
+        
+            return {type};
+    
+        });
+    
+        const _Computer = (function() {
+    
+            const type = (function() {
+                return 'computer';
+            });
+            
+            const getMove = (function() {
+                // for (let location of openLocations) {
+                //     for (let winWay of spaceInWinWay[location]) {
+                //         if (winWay.length < 2) {continue;};
+                //         if (checkWins[winWay][0] === checkWins[winWay][1]) {
+                //             return location;
+                //         };
+                //     };
+                // };
+                let move = openLocations[Math.floor(Math.random() * openLocations.length)]
+                openLocations.splice(move, 1);
+                return move;
+            });
+    
+            return {type, getMove};
+    
+        });
+        
+        const createPlayers = (function() {
+            players.push((document.querySelector('input[name="player1-radio"]:checked').value === 'player') ? _Player() : _Computer());
+            players.push((document.querySelector('input[name="player2-radio"]:checked').value === 'player') ? _Player() : _Computer());
+            if (players[turn - 1].type() === 'computer') {takeTurn(players[turn - 1].getMove());};
+        });
 
+        const resetPlayers = (function () {
+            players = [];
         });
 
         const reset = (function() {
-
-            let i = 5;
-
-            boardArr.forEach(spaceButton => {
-                spaceButton.disabled = false;
-                spaceButton.textContent = '';
-                spaceButton.value = i;
-                spaceButton.className = 'open space';
-                i++;
-            });
-
-        });
-    
-        const _init = (function(){
-
-            const spaceButton = document.createElement('button');
-
-            for (let i = 0; i <= 9; i++) boardArr.push(spaceButton.cloneNode());
-            boardArr.forEach(spaceButton => {
-                spaceButton.addEventListener('click', eve => {
-                    setSpace(spaceButton);
-                    _changeTurn();
-                    checkWin();
-                    spaceButton.disabled = true;
-                });
-            });
-
-            reset();
-
-        })();
-    
-        const displayBoard = (function() {
-
-            gameContainer.className = 'game-container';
-            boardArr.forEach(e => {
-                gameContainer.appendChild(e);
-            });
-            gameModuleContainer.append(gameContainer);
-
-        });
-
-        const destroy = (function() {
-
-            reset();
-            gameModuleContainer.removeChild(gameContainer);
-
-        });
-    
-    
-        const checkWin = (function() {
-
-            if (
-                (boardArr[4].value === boardArr[0].value && boardArr[4].value === boardArr[8].value) |
-                (boardArr[4].value === boardArr[1].value && boardArr[4].value === boardArr[7].value) |
-                (boardArr[4].value === boardArr[2].value && boardArr[4].value === boardArr[6].value) |
-                (boardArr[4].value === boardArr[3].value && boardArr[4].value === boardArr[5].value) ) {
-                    _playAgainScreen.display(boardArr[4].value);
-            } else if (
-                    (boardArr[0].value === boardArr[1].value && boardArr[0].value === boardArr[2].value) |
-                    (boardArr[0].value === boardArr[3].value && boardArr[0].value === boardArr[6].value) ) {
-                    _playAgainScreen.display(boardArr[0].value);
-            } else if (
-                    (boardArr[8].value === boardArr[5].value && boardArr[8].value === boardArr[2].value) |
-                    (boardArr[8].value === boardArr[7].value && boardArr[8].value === boardArr[6].value) ) {
-                    _playAgainScreen.display(boardArr[8].value);
-                    };
+            checkWins = [
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+            ];
+            openLocations = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            turnsTaken = 0;
+            gameOver = false;
         });
         
-        return {displayBoard, reset, destroy};
+        const _changeTurn = (function() {
+            console.log(checkWins);
+            turn = (turn === 1) ? 2 : 1;
+        });
 
-    })();
-    
-    const start = (function() {
-
-        turn = Math.floor(Math.random() * 2); // Set turn to a random number from 0 to (players.length-1)
-        gameModuleContainer.classList.add('game-screen');
-        gameboard.displayBoard();
-
-    });
-
-    //Makes new player with the value of the length of the players array to keep it simple in getting each player for expansion purposes
-    const createPlayer = (function(playerType) {
-
-        if (playerType === 'player') {
-            players.push(_Player(players.length));
-        } else if (playerType === 'computer') {
-            players.push(_Computer(players.length))
-        };
-
-    });
-
-    return {createPlayer, start, _getTurn};
-
-})();
-
-const welcomeScreen = (function() {
-
-    let header = document.createElement('div');
-    let title = document.createElement('span');
-    let welcomeTo = document.createElement('span');
-    let underlineAnimation = document.createElement('span');
-    let playerSelectorDiv = document.createElement('div');
-
-    const _init = (function() {
-
-        gameModuleContainer.classList.add('welcome-screen');
-        header.classList.add('header');
-        title.classList.add('game-title');
-        welcomeTo.classList.add('welcome-to-span');
-        playerSelectorDiv.classList.add('player-forms-container');
-        underlineAnimation.classList.add('underline-animate');
-
-        title.textContent = 'TIC-TAC-TOE';
-        welcomeTo.textContent = 'Welcome to ';
-        welcomeTo.addEventListener('animationend', function() {
-            underlineAnimation.classList.add('expand')
-        }, {once : true});
-        animateOnce('bounce-from-top', welcomeTo, false, true);
-
-        title.append(welcomeTo)
-        header.append(title);
-
-    })();
-
-    const _destroy = (function() {
-
-        animateOnce('slide-left', welcomeTo, true);
-        animateOnce('slide-down', playerSelectorDiv, true);
-        gameModuleContainer.classList.remove('welcome-screen');
-
-    });
-
-    const _display = (function() {
-
-        welcomeTo.appendChild(underlineAnimation);
-        gameModuleContainer.append(header, playerSelectorDiv);
-
-    });
-
-    const _getPlayers = (function() {
-
-        let forms = gameModuleContainer.querySelectorAll('.player-form');
-
-        for (let i = 1; i <= forms.length; i++) {
-            if (gameModuleContainer.querySelector(`#player${i}`).checked === true) {
-                game.createPlayer('player');
-            } else {
-                game.createPlayer('computer');
+        const _checkGameState = (function () {
+            if (turnsTaken === maxTurns) {
+                gameOver = true;
+                return playAgainScreen.display(0); // TODO: Add tie screen
             };
-        };
-
-    });
-
-    const _start = (function() {
-
-        _getPlayers();
-        _destroy();
-        game.start();
-
-    });
-
-    const _createForm = (function() {
-
-        for (let i = 1; i <= 2; i++) {
-            let playerForm = document.createElement('form');
-            playerForm.classList.add('player-form');
-            playerForm.setAttribute('name', `player${i}-form`);
-
-            let formHeader = document.createElement('h3');
-            formHeader.classList.add('player-form-header');
-            formHeader.textContent = `Player ${i}`;
-
+        });
+        
+        const _checkWin = (function(wayToCheck) {
+            if (wayToCheck[0] === wayToCheck[1] && wayToCheck[0] === wayToCheck[2]) {
+                gameOver = true;
+                playAgainScreen.display(turn);
+                reset();
+            };
+        });
     
-            let playerRadioButton = document.createElement('input');
-            playerRadioButton.classList.add('player-radio-button');
-            playerRadioButton.setAttribute('type', 'radio');
-            playerRadioButton.setAttribute('name', `player${i}-radio`)
-            playerRadioButton.setAttribute('id', `player${i}`)
-            playerRadioButton.setAttribute('value', 'player');
-            playerRadioButton.setAttribute('checked', 'true');
-    
-            let computerRadioButton = document.createElement('input');
-            computerRadioButton.classList.add('computer-radio-button');
-            computerRadioButton.setAttribute('type', 'radio');
-            computerRadioButton.setAttribute('name', `player${i}-radio`);
-            computerRadioButton.setAttribute('id', `computer${i}`);
-            computerRadioButton.setAttribute('value', 'computer');
-    
-            playerForm.append(formHeader, playerRadioButton, computerRadioButton);
-            playerSelectorDiv.appendChild(playerForm);
-        };
+        const setSpaceValue = (function(location) {
+            let ways = spaceInWinWay[location];
+            
+            for(let way of ways) {
+                checkWins[way].push(turn);
+                _checkWin(checkWins[way]);
+            }
+        });
 
-        let startGameButton = document.createElement('button')
-        startGameButton.textContent = 'START GAME';
-        startGameButton.classList.add('start-button');
-        startGameButton.addEventListener('click', _start);
-        playerSelectorDiv.append(startGameButton);
+        const takeTurn = (function(location) {
+            turnsTaken++;
+            setSpaceValue(location);
+            setSpaceToken(location);
+            boardArray[location].disabled = true;
+            _changeTurn();
+            if (players[turn - 1].type() === 'computer' && gameOver === false && turnsTaken < maxTurns) {
+                takeTurn(players[turn - 1].getMove());
+            };
+        });
 
-        animateOnce('expand', playerSelectorDiv, false, false);
-        _display();
+        const setSpaceToken = (function(location) {
+            let tokenSpan = document.createElement('span');
+            tokenSpan.classList.add('player-token');
+            animateOnce('expand-token', tokenSpan, {removeClassAfter : true})
+            tokenSpan.textContent = (turn === 1) ? 'X' : 'O';
+            boardArray[location].append(tokenSpan);
+        });
+
+        return {takeTurn, createPlayers, resetPlayers, reset};
+    })();
+
+    const gameboard = (function() {
+    
+        const boardContainer = document.createElement('div');
+        const column1 = document.createElement('div');
+        const column2 = document.createElement('div');
+        const row1 = document.createElement('div');
+        const row2= document.createElement('div');
+        const spaceButton = document.createElement('button');
+        
+        const _init = (function() {
+            boardContainer.classList.add('board-container');
+            spaceButton.classList.add('space', 'open');
+            column1.classList.add('board-column', 'column1');
+            column2.classList.add('board-column', 'column2');
+            row1.classList.add('board-row', 'row1');
+            row2.classList.add('board-row', 'row2');
+
+            boardContainer.append(column1, column2, row1, row2);
+        })();
+        
+        const _createBoard = (function(){
+            for (let location = 0; location < 9; location++) {
+                let space = spaceButton.cloneNode();
+                space.value = location;
+                space.addEventListener('click', () => {
+                    gameLogic.takeTurn(location);
+                });
+                
+                boardArray.push(space);
+                boardContainer.append(boardArray[location]);
+            };
+        })();
+        
+        const displayBoard = (function() {
+            animateOnce('from-right', boardContainer, {removeClassAfter : true});
+            contentContainer.append(boardContainer);
+        });
+
+        const resetBoard = (function() {
+            boardArray.forEach(space => {
+                space.disabled = false;
+                if (space.querySelector('span') != null) {
+                animateOnce('shrink-token', space.querySelector('span'), {deleteElementAfter : true, removeClassAfter : true})
+                }
+            });
+        });
+    
+        const destroy = (function() {
+            animateOnce('to-left', boardContainer, {deleteElementAfter : true, removeClassAfter : true});
+            resetBoard();
+        });
+
+        return {resetBoard, destroy, displayBoard};
 
     })();
 
-    const reset = (function() {
+    const welcomeScreen = (function() {
+    
+        const header = document.createElement('div');
+        const title = document.createElement('span');
+        const welcomeTo = document.createElement('span');
+        const underlineAnimation = document.createElement('span');
+        const playerFormsContainer = document.createElement('div');
+        const startButton = document.createElement('button');
+        
+        const _animations = (function() {
+            animateOnce('bounce-from-top', welcomeTo, {removeClassAfter : true});
+    
+            welcomeTo.addEventListener('animationend', function() {
+                animateOnce('expand', underlineAnimation, {removeClassAfter : true});
+                welcomeTo.append(underlineAnimation);
+                animateOnce('from-right', playerFormsContainer, {removeClassAfter : true});
+                contentContainer.append(playerFormsContainer);
+            }, {once : true});
+        });
+    
+        const _init = (function() {
+            contentContainer.classList.add('content');
+            header.classList.add('header');
+            title.classList.add('game-title');
+            welcomeTo.classList.add('welcome-to-span');
+            playerFormsContainer.classList.add('player-forms-container');
+            underlineAnimation.classList.add('underline-animate');
+            startButton.classList.add('start-button');
+            
+            startButton.textContent = 'START GAME';
+            title.textContent = 'TIC-TAC-TOE';
+            welcomeTo.textContent = 'Welcome to ';
+    
+            startButton.addEventListener('click', function() {
+                _destroy();
+            });
+    
+            _animations();
+    
+            playerFormsContainer.append(playerTypeForms.playerOneForm, playerTypeForms.playerTwoForm, startButton);
+    
+            title.append(welcomeTo);
+            header.append(title);
+            gameModuleContainer.append(header, contentContainer);
+        })();
+    
+        const _destroy = (function() {
+            if (document.querySelector('.welcome-to-span') != null) animateOnce('down', welcomeTo, {deleteElementAfter : true});
+            animateOnce('to-left', playerFormsContainer, {deleteElementAfter : true, removeClassAfter : true});
+            gameLogic.createPlayers();
+            gameboard.displayBoard();
+        });
+    
+        const getNewPlayers = (function() {
+            contentContainer.append(playerFormsContainer);
+            animateOnce('from-right', playerFormsContainer, {removeClassAfter : true})
+        });
 
-        header.insertBefore(welcomeTo, title);
-        _display();
+        return {getNewPlayers};
+    
+    })();
 
-    });
 
-    return {reset};
 
 })();
